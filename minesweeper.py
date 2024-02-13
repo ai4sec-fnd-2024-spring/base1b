@@ -71,9 +71,14 @@ class MinesweeperGame():
             self.spaces, self.mines = count_reachable_cells(self._full_map, self.start)
         else:
             self.mines = 0
-            for x, seq in enumerate(self._full_map):
+            for seq in self._full_map:
                 self.mines += seq.count('*')
             self.spaces = self.shape[0]*self.shape[1] - self.mines
+        self._mine_set = set()
+        for y in range(len(self._full_map)):
+            for x in range(len(self._full_map[y])):
+                if self._full_map[y][x] == '*':
+                    self._mine_set.add((y,x))
         self.reset()
         
     def reset(self):
@@ -153,6 +158,13 @@ class MinesweeperGame():
             if location not in self._actions:
                 self._action_keys.append(location)
             self._actions[location] = np.array([scores, visible], dtype=float)
+        # check if no available actions exist
+        if len(self._actions) == 0:
+            self.done = True
+        
+        # check if all remaing actions are mine selection
+        elif set(self._action_keys) <= self._mine_set:
+            self.done = True
 
 
     def update_score(self):
